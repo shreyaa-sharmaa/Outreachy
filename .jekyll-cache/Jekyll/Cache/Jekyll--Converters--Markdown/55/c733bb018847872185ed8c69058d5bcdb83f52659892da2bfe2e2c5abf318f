@@ -1,0 +1,95 @@
+I"]<p>Hey! Shreyaa this side. I’m an GSoC 2021 student developer at Ceph. This blog series is about my journey with Ceph Organisation. I’ve been working with the dashboard team since June 6th, the start of GSoC coding period. I was mentored by Ernesto Puerta and Alfonso Martínez.</p>
+
+<p>I would like to thank my mentors and the entire dashboard team at Ceph for their constant support and guidance throughout the summer. They’ve always been there to help me whenever I was stuck and motivated me to follow good practices to code. Throughout the program they’ve guided me to make better design choices and constantly helped me improve as a developer with constructive feedback.</p>
+
+<h2 id="about-ceph">About Ceph</h2>
+<p>Ceph is an open-source software storage platform, implements object storage on a single distributed computer cluster. Ceph uniquely delivers object, block, and file storage in one unified system. Ceph makes it easier to handle vast amounts of data.</p>
+
+<h2 id="my-project">My Project</h2>
+<p>My GSoC project was integrating Ceph Issue Tracker with the Ceph Dashboard.</p>
+
+<h3 id="problem-statement">Problem Statement</h3>
+<p>When a Ceph user encounters a bug, faces an issue or has a feature request to make, he/she has to go to the Ceph Issue Tracker to report or request for the same. This leads to a several problems such as:</p>
+
+<ol>
+  <li>
+    <p>Bad user experience<br />
+The user’s work flow is disrupted. They have to collect the relevant information from one site and visit another site to create a new issue.</p>
+  </li>
+  <li>
+    <p>Funnel decreases
+When a user encounters a problem he/she generally reach out to the ceph user or developer mailing list to enquire about the same. Not all of the users get a reply back. Let’s say out of 100 users reporting, only 75% get a reply back (Rough figures, only for the purpose of explanation). Out of those 75 getting a reply, about 50 of them are asked to create a new issue on the Ceph Issue Tracker. Out of those asked to create an issue, not all of them end up visiting the Ceph Issue Tracker due to the inconvenience at every stage of this process. Thus the number of users actually reporting an issue at last is significantly small. We can understand this better using the below diagram:</p>
+  </li>
+</ol>
+
+<p><img src="/blog/assets/img/FunnelDiagram.jpg" alt="Issue Reporter Funnel" /></p>
+
+<h3 id="proposed-solution">Proposed Solution</h3>
+<p>The solution we came up with was to integrate Ceph Issue Tracker with the Ceph Dashboard. Ceph Dashboard is the frontend component of teh Ceph project. It can be used to monitor and update the services running in the Ceph environment.</p>
+
+<p>The user should be able to report issues from the Ceph CLI as well as the Ceph Dashboard.</p>
+
+<p><img src="/blog/assets/img/workflow.jpg" alt="Ceph User Workflow" /></p>
+
+<h2 id="my-work">My Work</h2>
+<p>The Ceph Issue Tracker is based on Redmine. Ceph Issue Tracker has exposed endpoints that can be used to create, fetch and update issues. I added endpoints in the Ceph Dashboard module that call services which internally use these exposed Ceph Issue tracker endpoints. The user can fetch issues using an issue number and create new issues as well.</p>
+
+<p>To create an issue a user has to have an account on the Ceph Issue Tracker. This is mandatory to avoid spamming on the issue tracker.</p>
+
+<p>Under the  <code class="language-plaintext highlighter-rouge">my account</code>  tab, the API access key is stored. This API key is used for authentication and authorization of the user.</p>
+
+<p>Available components to create an issue in:</p>
+<ol>
+  <li>dashboard</li>
+  <li>block (rbd)</li>
+  <li>object (rgw)</li>
+  <li>file_system (cephfs)</li>
+  <li>ceph_manager</li>
+  <li>orchestrator</li>
+  <li>ceph_volume</li>
+  <li>core_ceph</li>
+</ol>
+
+<p>Available tracker types to create:</p>
+<ol>
+  <li>bug</li>
+  <li>feature</li>
+</ol>
+
+<h3 id="using-cli">Using CLI</h3>
+
+<p>The user sets this key in the Ceph cluster(right word?) using the command</p>
+
+<p><code class="language-plaintext highlighter-rouge">ceph dashboard set-ceph-tracker-api-key -i &lt;file-containing-api-access-key&gt;</code></p>
+
+<p>The user can then get an issue using:</p>
+
+<p><code class="language-plaintext highlighter-rouge">ceph dashboard get issue &lt;issue_number&gt;</code></p>
+
+<p><em>This command can run without setting the API access key</em></p>
+
+<p>To create a new issue:</p>
+
+<p><code class="language-plaintext highlighter-rouge">ceph dashboard create issue &lt;component-name&gt; &lt;tracker-type&gt; &lt;subject&gt; &lt;description&gt;</code></p>
+
+<h3 id="using-dashboard">Using Dashboard</h3>
+<p>On clicking the settings icon at the top right of the window, in the navbar the user needs to click on raise an issue. This would open a modal that looks like:</p>
+
+<p><img src="/blog/assets/img/dashboard.png" alt="Ceph Dashboard" /></p>
+
+<p>The user has to choose the component and tracker from list of respective drop down menus. Then they can enter the title and description of the issue. They can then proceed to create an issue in the ceph issue tracker. The modal that opens after that has the detail of the issue created and the option to redirect to the Ceph Issue tracker or stay on the current page.</p>
+
+<h2 id="challenges-faced">Challenges faced</h2>
+<p>I initially used the <code class="language-plaintext highlighter-rouge">python-redmine</code> library to create issues and familiarize myself with the redmine based issue tracker. But I couldn’t proceed with this library since it is not packaged for CentOS which is a supported OS for Ceph.</p>
+
+<p>I then decided to proceed with raw API requests, but the documentation on <a href="https://www.redmine.org/projects/redmine/wiki/Developer_Guide">redmine</a> was not accurate. I wasn’t able to create an issue using the curl calls and request body description given in the documentation.</p>
+
+<p>The next approach was to dump the request sent by <code class="language-plaintext highlighter-rouge">python-redmine</code> library. For that I used wireshark, but since post requests are encrypted, and the library only sends requests to <code class="language-plaintext highlighter-rouge">https</code> secured links, that didn’t work. Spending endless hours on stackoverflow, I came across these logging lines, which helped me enough to find out that some arguments were being sent as query parameters. The raw requests worked after that.</p>
+
+<p>The Ceph Issue Tracker, by default, creates a bug. I was not able to create a feature using this. I then found out about <a href="https://webhook.site/">webhook.site</a>  which logs the request that is sent on a uniquely generated API endpoint. So I logged a feature creation request sent using  <br />
+<code class="language-plaintext highlighter-rouge">python-redmine</code> library and sent a similar body in my raw request. The feature creation was now working!</p>
+
+<blockquote>
+  <p>Happy Coding!</p>
+</blockquote>
+:ET
