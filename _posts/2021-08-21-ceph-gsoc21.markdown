@@ -28,6 +28,7 @@ When a user encounters a problem he/she generally reach out to the ceph user or 
 
 ![Issue Reporter Funnel]({{site.baseurl}}/assets/img/FunnelDiagram.jpg)
 
+
 ### Proposed Solution
 The solution we came up with was to integrate Ceph Issue Tracker with the Ceph Dashboard. Ceph Dashboard is the frontend component of teh Ceph project. It can be used to monitor and update the services running in the Ceph environment. 
 
