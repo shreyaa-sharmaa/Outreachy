@@ -62,7 +62,7 @@ Available tracker types to create:
 
 The user sets this key in the Ceph cluster using the command
 
-`ceph dashboard set-ceph-tracker-api-key -i <file-containing-api-access-key>`
+`ceph dashboard set-issue-tracker-api-key -i <file-containing-key>`
 
 The user can then get an issue using:
 
@@ -91,6 +91,17 @@ The next approach was to dump the request sent by `python-redmine` library. For 
 
 The Ceph Issue Tracker, by default, creates a bug. I was not able to create a feature using this. I then found out about [webhook.site](https://webhook.site/)  which logs the request that is sent on a uniquely generated API endpoint. So I logged a feature creation request sent using    
 `python-redmine` library and sent a similar body in my raw request. The feature creation was now working!
-   
+
+## Links
+
+[Issue description and discussion](https://tracker.ceph.com/issues/44851)   
+[Backend PR](https://github.com/ceph/ceph/pull/42090)   
+[Frontend PR](https://github.com/ceph/ceph/pull/42603)   
+
+### Things left to do
+
+1. Make the required changes in frontend PR
+2. Shift the feedback to a new standalone mgr module
+
 
 > Happy Coding!
